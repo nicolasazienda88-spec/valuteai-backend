@@ -556,7 +556,7 @@ function scrollToAnalysis(){
     });
 }
 
-function analyzeAI(){
+async function analyzeAI(){
 
     if(window.currentUser == null){
         openLogin();
@@ -565,7 +565,7 @@ function analyzeAI(){
 
     const title = document.getElementById("title").value;
     const description = document.getElementById("description").value;
-
+    const condition = document.getElementById("condition").value;
     if(title === "" || description === ""){
         alert("Compila tutti i campi");
         return;
