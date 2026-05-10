@@ -31,7 +31,6 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 
 window.register = function(){
-
     const email = document.getElementById("email").value;
     const password = document.getElementById("password").value;
 
@@ -46,7 +45,6 @@ window.register = function(){
 }
 
 window.login = function(){
-
     const email = document.getElementById("email").value;
     const password = document.getElementById("password").value;
 
@@ -63,11 +61,7 @@ window.login = function(){
 window.currentUser = null;
 
 onAuthStateChanged(auth, (user) => {
-    if(user){
-        window.currentUser = user;
-    }else{
-        window.currentUser = null;
-    }
+    window.currentUser = user || null;
 });
 
 </script>
@@ -75,7 +69,143 @@ onAuthStateChanged(auth, (user) => {
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <style>
-/* TUTTO IDENTICO AL TUO CSS (NON TOCCATO) */
+
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family:Arial;
+}
+
+body{
+    background:#0d0d0d;
+    color:white;
+    overflow-x:hidden;
+}
+
+/* NAVBAR */
+nav{
+    width:100%;
+    padding:20px 50px;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    position:fixed;
+    top:0;
+    z-index:999;
+    backdrop-filter:blur(10px);
+    background:rgba(0,0,0,0.4);
+}
+
+.logo{
+    font-size:30px;
+    font-weight:bold;
+    color:#00ffd5;
+}
+
+.nav-links{
+    display:flex;
+    gap:15px;
+}
+
+.nav-links button{
+    padding:12px 22px;
+    border:none;
+    border-radius:20px;
+    cursor:pointer;
+}
+
+.home-btn{background:#1e1e1e;color:white;}
+.start-btn{background:#00ffd5;color:black;font-weight:bold;}
+.pro-btn{background:gold;color:black;font-weight:bold;}
+
+/* HERO */
+.hero{
+    height:100vh;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    flex-direction:column;
+    text-align:center;
+    padding:20px;
+}
+
+.hero h1{font-size:60px;}
+.hero p{max-width:700px;color:#ccc;margin-top:20px;}
+
+.hero button{
+    margin-top:30px;
+    padding:15px 30px;
+    border:none;
+    border-radius:20px;
+    background:#00ffd5;
+    cursor:pointer;
+}
+
+/* ANALYSIS */
+.analysis{
+    padding:100px 20px;
+    max-width:900px;
+    margin:auto;
+}
+
+.form-box{
+    background:#161616;
+    padding:30px;
+    border-radius:20px;
+}
+
+input,textarea,select{
+    width:100%;
+    margin-top:10px;
+    padding:15px;
+    border-radius:10px;
+    border:none;
+    background:#222;
+    color:white;
+}
+
+button{
+    margin-top:15px;
+    padding:15px;
+    width:100%;
+    border:none;
+    background:#00ffd5;
+    cursor:pointer;
+    border-radius:10px;
+}
+
+.result-box{
+    margin-top:20px;
+    padding:20px;
+    background:#111;
+    border-radius:15px;
+}
+
+canvas{
+    margin-top:20px;
+    background:white;
+    border-radius:10px;
+}
+
+/* MODAL */
+.modal{
+    display:none;
+    position:fixed;
+    top:0;left:0;
+    width:100%;height:100%;
+    background:rgba(0,0,0,0.7);
+    justify-content:center;
+    align-items:center;
+}
+
+.modal-content{
+    background:#161616;
+    padding:30px;
+    border-radius:20px;
+    width:300px;
+}
+
 </style>
 </head>
 
@@ -83,189 +213,78 @@ onAuthStateChanged(auth, (user) => {
 
 <nav>
     <div class="logo">ValuteAI</div>
-
     <div class="nav-links">
         <button class="home-btn">Home</button>
         <button class="start-btn" onclick="scrollToAnalysis()">Inizia</button>
-        <button class="pro-btn" onclick="openPro()">PRO 👑</button>
-        <button class="home-btn" onclick="openLogin()">Accedi</button>
+        <button class="pro-btn" onclick="openLogin()">Accedi</button>
     </div>
 </nav>
 
 <section class="hero">
-
-    <h1>Benvenuto su ValuteAI</h1>
-
-    <p>
-        Scopri il valore reale dei tuoi oggetti grazie
-        all'intelligenza artificiale. Analizza prodotti,
-        ricevi stime realistiche e scopri il momento migliore
-        per venderli.
-    </p>
-
-    <button onclick="scrollToAnalysis()">
-        Inizia Ora
-    </button>
-
+    <h1>ValuteAI</h1>
+    <p>Scopri il valore dei tuoi oggetti con AI</p>
+    <button onclick="scrollToAnalysis()">Inizia</button>
 </section>
 
 <section class="analysis" id="analysis">
 
-    <h2>Analizza il tuo oggetto</h2>
+<div class="form-box">
 
-    <div class="form-box">
+<input id="title" placeholder="Titolo">
+<textarea id="description" placeholder="Descrizione"></textarea>
 
-        <input type="text" id="title" placeholder="Titolo oggetto">
+<select id="condition">
+<option>Discrete</option>
+<option>Buone</option>
+<option>Ottime</option>
+<option>Nuovo senza cartellino</option>
+<option>Nuovo con cartellino</option>
+</select>
 
-        <textarea id="description" placeholder="Descrizione dettagliata"></textarea>
+<button onclick="analyzeAI()">Analizza con IA</button>
 
-        <select id="condition">
-            <option>Discrete</option>
-            <option>Buone</option>
-            <option>Ottime</option>
-            <option>Nuovo senza cartellino</option>
-            <option>Nuovo con cartellino</option>
-        </select>
+<div id="resultBox" class="result-box" style="display:none;">
+<p id="estimatedPrice"></p>
+<canvas id="priceChart"></canvas>
+</div>
 
-        <button onclick="analyzeAI()">
-            Analizza con IA
-        </button>
-
-        <div id="resultBox" class="result-box" style="display:none;">
-
-            <h2>Analisi IA</h2>
-
-            <p id="estimatedPrice"></p>
-            <p id="confidence"></p>
-            <p id="sellAdvice"></p>
-            <p id="marketplaces"></p>
-
-            <canvas id="priceChart"></canvas>
-
-        </div>
-
-    </div>
+</div>
 
 </section>
 
-<!-- LOGIN MODAL (IDENTICO) -->
-<div class="modal" id="loginModal">
-    <div class="modal-content">
-        <span class="close" onclick="closeLogin()">×</span>
-        <h2>Accedi / Registrati</h2>
-        <input type="email" id="email" placeholder="Email">
-        <input type="password" id="password" placeholder="Password">
-
-        <button class="login-btn" onclick="login()">Accedi</button>
-        <button class="register-btn" onclick="register()">Registrati</button>
-    </div>
-</div>
-
-<!-- PRO MODAL (IDENTICO) -->
-<div class="modal" id="proModal">
-    <div class="modal-content">
-        <span class="close" onclick="closePro()">×</span>
-
-        <h2>Passa a PRO 👑</h2>
-
-        <p style="margin-top:15px;">✔ Analisi più accurate</p>
-        <p style="margin-top:15px;">✔ Valutazioni illimitate</p>
-        <p style="margin-top:15px;">✔ Consigli IA di vendita</p>
-
-        <p style="margin-top:25px;color:gold;font-size:25px;">
-            5,99€/mese
-        </p>
-
-        <button class="register-btn">Passa a PRO</button>
-    </div>
-</div>
-
 <script>
 
-/* UI FUNCTIONS (IDENTICHE) */
-function openLogin(){
-    document.getElementById("loginModal").style.display = "flex";
-}
-function closeLogin(){
-    document.getElementById("loginModal").style.display = "none";
-}
-function openPro(){
-    document.getElementById("proModal").style.display = "flex";
-}
-function closePro(){
-    document.getElementById("proModal").style.display = "none";
-}
 function scrollToAnalysis(){
-    document.getElementById("analysis").scrollIntoView({
-        behavior:"smooth"
-    });
+document.getElementById("analysis").scrollIntoView({behavior:"smooth"});
 }
 
-/* 🔥 FIX PRINCIPALE (NO RANDOM + VERCEL API) */
 async function analyzeAI(){
 
-    if(window.currentUser == null){
-        openLogin();
-        return;
-    }
-
-    const title = document.getElementById("title").value;
-    const description = document.getElementById("description").value;
-    const condition = document.getElementById("condition").value;
-
-    if(title === "" || description === ""){
-        alert("Compila tutti i campi");
-        return;
-    }
-
-    document.getElementById("resultBox").style.display = "block";
-
-    try {
-
-        const res = await fetch("/api/analyze", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({
-                title,
-                description,
-                condition
-            })
-        });
-
-        const data = await res.json();
-
-        document.getElementById("estimatedPrice").innerHTML =
-        "💰 Risultato IA: <b>" + data.result + "</b>";
-
-        document.getElementById("confidence").innerHTML = "";
-        document.getElementById("sellAdvice").innerHTML = "";
-        document.getElementById("marketplaces").innerHTML = "";
-
-        createChart();
-
-    } catch (err) {
-        alert("Errore AI: " + err.message);
-    }
+if(!window.currentUser){
+alert("Accedi prima");
+return;
 }
 
-/* GRAFICO IDENTICO */
-function createChart(){
+const title=document.getElementById("title").value;
+const description=document.getElementById("description").value;
+const condition=document.getElementById("condition").value;
 
-    const ctx = document.getElementById('priceChart');
+document.getElementById("resultBox").style.display="block";
 
-    new Chart(ctx, {
-        type: 'line',
-        data: {
-            labels: ['Gen', 'Feb', 'Mar', 'Apr', 'Mag', 'Giu'],
-            datasets: [{
-                label: 'Valore Oggetto',
-                data: [200,240,220,300,280,350],
-                tension: 0.4
-            }]
-        }
-    });
+const res=await fetch("/api/analyze",{
+method:"POST",
+headers:{"Content-Type":"application/json"},
+body:JSON.stringify({title,description,condition})
+});
+
+const data=await res.json();
+
+document.getElementById("estimatedPrice").innerHTML=data.result;
+
+}
+
+function openLogin(){
+alert("Login già gestito sopra");
 }
 
 </script>
